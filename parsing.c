@@ -104,6 +104,7 @@ lval *lval_read(mpc_ast_t *t) {
   return x;
 }
 
+/* Delete lval */
 void lval_del(lval *v) {
 
   switch (v->type) {
@@ -128,6 +129,7 @@ void lval_del(lval *v) {
 
 void lval_print(lval *v);
 
+/* Print lval expr */
 void lval_expr_print(lval *v, char open, char close) {
 
   putchar(open);
@@ -142,6 +144,7 @@ void lval_expr_print(lval *v, char open, char close) {
   putchar(close);
 }
 
+/* Print lval */
 void lval_print(lval *v) {
 
   switch (v->type) {
@@ -167,6 +170,7 @@ void lval_println(lval *v) {
   putchar('\n');
 }
 
+/* Get lval without deleting lval children */
 lval *lval_pop(lval *v, int i) {
 
   lval *x = v->cell[i];
@@ -176,6 +180,7 @@ lval *lval_pop(lval *v, int i) {
   return x;
 }
 
+/* Get lval (delet children) */
 lval *lval_take(lval *v, int i) {
 
   lval *x = lval_pop(v, i);
@@ -185,6 +190,7 @@ lval *lval_take(lval *v, int i) {
 
 lval *lval_eval_sexpr(lval *v);
 
+/* Evaluate lval */
 lval *lval_eval(lval *v) {
 
   if (v->type == LVAL_SEXPR) {
@@ -193,6 +199,7 @@ lval *lval_eval(lval *v) {
   return v;
 }
 
+/* Handle operations */
 lval *builtin_op(lval *a, char *op) {
 
   for (int i = 0; i < a->count; i++) {
@@ -261,6 +268,7 @@ lval *builtin_op(lval *a, char *op) {
   return x;
 }
 
+/* Evaluate lval Sexpr */
 lval *lval_eval_sexpr(lval *v) {
 
   /* evaluate childrens */
