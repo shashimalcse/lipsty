@@ -5,6 +5,7 @@
 
 enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR };
 
+/* Value that represent number, symbol, expr, Sexpr */
 typedef struct lval{
     int type;
     long num;
@@ -14,6 +15,7 @@ typedef struct lval{
     struct lval** cell;
 } lval;
 
+/* Create a pointer to new Number lval */
 lval* lval_num(long x) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_NUM;
@@ -21,6 +23,7 @@ lval* lval_num(long x) {
   return v;
 }
 
+/* Create a pointer to new Error lval */
 lval* lval_err(char* m) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_ERR;
@@ -29,6 +32,7 @@ lval* lval_err(char* m) {
   return v;
 }
 
+/* Create a pointer to new Symbol lval */
 lval* lval_sym(char* s) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_SYM;
@@ -37,6 +41,7 @@ lval* lval_sym(char* s) {
   return v;
 }
 
+/* Create a pointer to new Sexpr lval */
 lval* lval_sexpr(void) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_SEXPR;
@@ -240,14 +245,15 @@ lval* lval_eval_sexpr(lval* v) {
 }
 
 int main(int argc, char **argv) {
-    /* Parsers for math */
+
+    /* Parsers for the lipsty */
     mpc_parser_t* Number = mpc_new("number");
     mpc_parser_t* Symbol = mpc_new("symbol");
     mpc_parser_t* Sexpr = mpc_new("sexpr");
     mpc_parser_t* Expr = mpc_new("expr");
     mpc_parser_t* Lispty = mpc_new("lispty");
 
-    /* Define language */
+    /* Define language grammar */
     mpca_lang(MPCA_LANG_DEFAULT,
     "                                                      \
       number   : /-?[0-9]+/ ;                              \
@@ -260,10 +266,10 @@ int main(int argc, char **argv) {
 
     while (1) {
 
-        char* input = readline("lispy> ");
+        char* input = readline("lispty> ");
         add_history(input);
 
-        /* parse the user input */
+        /* Parse the user input */
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Lispty, &r))
         {
