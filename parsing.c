@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR };
+enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR };
 
 /* Value that represent number, symbol, expr, Sexpr */
 typedef struct lval {
@@ -54,6 +54,16 @@ lval *lval_sexpr(void) {
   return v;
 }
 
+/* Create a pointer to new Qexpr lval */
+lval *lval_qexpr(void) {
+
+  lval *v = malloc(sizeof(lval));
+  v->type = LVAL_QEXPR;
+  v->count = 0;
+  v->cell = NULL;
+  return v;
+}
+
 lval *lval_read_num(mpc_ast_t *t) {
 
   errno = 0;
@@ -87,12 +97,21 @@ lval *lval_read(mpc_ast_t *t) {
   if (strstr(t->tag, "sexpr")) {
     x = lval_sexpr();
   }
+  if (strstr(t->tag, "qexpr")) {
+    x = lval_qexpr();
+  }
 
   for (int i = 0; i < t->children_num; i++) {
     if (strcmp(t->children[i]->contents, "(") == 0) {
       continue;
     }
     if (strcmp(t->children[i]->contents, ")") == 0) {
+      continue;
+    }
+    if (strcmp(t->children[i]->contents, "{") == 0) {
+      continue;
+    }
+    if (strcmp(t->children[i]->contents, "}") == 0) {
       continue;
     }
     if (strcmp(t->children[i]->tag, "regex") == 0) {
@@ -117,6 +136,8 @@ void lval_del(lval *v) {
     case LVAL_ERR:
       free(v->err);
       break;
+    /* Delete all elements*/  
+    case LVAL_QEXPR:
     case LVAL_SEXPR:
       for (int i = 0; i < v->count; i++) {
         lval_del(v->cell[i]);
@@ -161,6 +182,10 @@ void lval_print(lval *v) {
     lval_expr_print(v, '(', ')');
     break;
     break;
+  case LVAL_QEXPR:
+    lval_expr_print(v, '{', '}');
+    break;
+    break;    
   }
 }
 
@@ -308,6 +333,7 @@ int main(int argc, char **argv) {
   mpc_parser_t *Number = mpc_new("number");
   mpc_parser_t *Symbol = mpc_new("symbol");
   mpc_parser_t *Sexpr = mpc_new("sexpr");
+  mpc_parser_t *Qexpr = mpc_new("qexpr");
   mpc_parser_t *Expr = mpc_new("expr");
   mpc_parser_t *Lispty = mpc_new("lispty");
 
@@ -317,10 +343,11 @@ int main(int argc, char **argv) {
       number   : /-?[0-9]+/ ;                              \
       symbol : '+' | '-' | '*' | '/' | '%' | '^' | \"min\" | \"max\";   \
       sexpr     : '(' <expr>* ')' ;   \
-      expr     : <number> | <symbol> | <sexpr> ;   \
+      qexpr :   '{' <expr>* '}' ;   \
+      expr     : <number> | <symbol> | <sexpr>  | <qexpr> ;   \
       lispty    : /^/ <expr>* /$/ ;             \
     ",
-            Number, Symbol, Sexpr, Expr, Lispty);
+      Number, Symbol, Sexpr, Qexpr, Expr, Lispty);
 
   while (1) {
 
@@ -342,6 +369,6 @@ int main(int argc, char **argv) {
   }
 
   /* undefine and delete  parsers */
-  mpc_cleanup(5, Number, Symbol, Sexpr, Expr, Lispty);
+  mpc_cleanup(6, Number, Symbol, Sexpr, Qexpr, Expr, Lispty);
   return 0;
 }
